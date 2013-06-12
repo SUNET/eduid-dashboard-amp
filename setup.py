@@ -31,16 +31,15 @@ setup(name='eduid-dashboard-amp',
       ],
       keywords='',
       author='NORDUnet A/S',
-      author_email='',
-      url='',
-      license='',
+      url='https://github.com/SUNET/eduid-dashboard-amp',
+      license='BSD',
       packages=find_packages(),
       include_package_data=True,
       zip_safe=False,
       install_requires=requires,
-      extra_requires={
-          'testing': testing_extras,
-      },
+      extras_require={
+        'testing': testing_extras,
+        },
       test_suite='eduid_dashboard_amp',
       entry_points="""
       [eduid_am.attribute_fetcher]
