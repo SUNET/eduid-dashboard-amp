@@ -17,7 +17,7 @@ class AttributeFetcherTests(MongoTestCase):
                           bson.ObjectId('000000000000000000000000'))
 
     def test_existing_user(self):
-        user_id = self.conn['test'].registered.insert({
+        user_id = self.conn['test'].profiles.insert({
             'email': 'john@example.com',
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
             'verified': True,
@@ -30,7 +30,7 @@ class AttributeFetcherTests(MongoTestCase):
         )
 
     def test_malicious_attributes(self):
-        user_id = self.conn['test'].registered.insert({
+        user_id = self.conn['test'].profiles.insert({
             'email': 'john@example.com',
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
             'verified': True,
@@ -45,7 +45,7 @@ class AttributeFetcherTests(MongoTestCase):
         )
 
     def test_fillup_attributes(self):
-        user_id = self.conn['test'].registered.insert({
+        user_id = self.conn['test'].profiles.insert({
             'email': 'john@example.com',
             'screen_name': 'John',
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
@@ -59,7 +59,7 @@ class AttributeFetcherTests(MongoTestCase):
              'verified': True}
         )
 
-        self.conn['test'].registered.update({
+        self.conn['test'].profiles.update({
             'email': 'john@example.com',
         }, {
             '$set': {
@@ -73,7 +73,7 @@ class AttributeFetcherTests(MongoTestCase):
         )
 
     def test_append_attributes(self):
-        user_id = self.conn['test'].registered.insert({
+        user_id = self.conn['test'].profiles.insert({
             'email': 'john@example.com',
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
             'verified': True,
@@ -106,7 +106,7 @@ class AttributeFetcherTests(MongoTestCase):
         )
 
         # Adding a new password
-        self.conn['test'].registered.update({
+        self.conn['test'].profiles.update({
             'email': 'john@example.com',
         }, {
             '$push': {

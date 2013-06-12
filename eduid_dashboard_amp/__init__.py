@@ -4,7 +4,7 @@ from eduid_am.exceptions import UserDoesNotExist
 def attribute_fetcher(db, user_id):
     attributes = {}
 
-    user = db.registered.find_one({'_id': user_id})
+    user = db.profiles.find_one({'_id': user_id})
     if user is None:
         raise UserDoesNotExist("No user matching _id='%s'" % user_id)
 
