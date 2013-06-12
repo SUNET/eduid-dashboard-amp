@@ -43,6 +43,7 @@ setup(name='eduid-dashboard-amp',
       },
       test_suite='eduid_dashboard_amp',
       entry_points="""
-      # -*- Entry points: -*-
+      [eduid_am.attribute_fetcher]
+      eduid_dashboard = eduid_dashboard_amp:attribute_fetcher
       """,
       )
