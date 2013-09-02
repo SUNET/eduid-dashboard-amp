@@ -1,6 +1,25 @@
 from eduid_am.exceptions import UserDoesNotExist
 
 
+WHITELIST_SET_ATTRS = (
+    'givenName',
+    'sn',
+    'displayName',
+    'photo',
+    'preferredLanguage',
+    'mail',
+
+    # TODO: Arrays must use put or pop, not set, but need more deep refacts
+    'norEduPersonNIN',
+    'eduPersonEntitlement',
+    'mobile',
+    'mailAliases',
+    'portalAddress',
+
+    'passwords',
+)
+
+
 def attribute_fetcher(db, user_id):
     attributes = {}
 
@@ -10,15 +29,11 @@ def attribute_fetcher(db, user_id):
 
     else:
         # white list of valid attributes for security reasons
-        for attr in ('email', 'date', 'verified'):
+        attributes_set = {}
+        for attr in WHITELIST_SET_ATTRS:
             value = user.get(attr, None)
             if value is not None:
-                attributes[attr] = value
+                attributes_set[attr] = value
 
-        # This values must overwrite existent values
-        for attr in ('screen_name', 'last_name', 'first_name', 'passwords'):
-            value = user.get(attr, None)
-            if value is not None:
-                attributes[attr] = value
-
+        attributes['$set'] = attributes_set
     return attributes
