@@ -8,6 +8,7 @@ WHITELIST_SET_ATTRS = (
     'photo',
     'preferredLanguage',
     'mail',
+    'date',  # last modification
 
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
@@ -27,13 +28,13 @@ def attribute_fetcher(db, user_id):
     if user is None:
         raise UserDoesNotExist("No user matching _id='%s'" % user_id)
 
-    else:
-        # white list of valid attributes for security reasons
-        attributes_set = {}
-        for attr in WHITELIST_SET_ATTRS:
-            value = user.get(attr, None)
-            if value is not None:
-                attributes_set[attr] = value
+    # white list of valid attributes for security reasons
+    attributes_set = {}
+    for attr in WHITELIST_SET_ATTRS:
+        value = user.get(attr, None)
+        if value is not None:
+            attributes_set[attr] = value
 
-        attributes['$set'] = attributes_set
+    attributes['$set'] = attributes_set
+
     return attributes
