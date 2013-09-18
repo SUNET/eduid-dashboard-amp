@@ -15,8 +15,7 @@ WHITELIST_SET_ATTRS = (
     'eduPersonEntitlement',
     'mobile',
     'mailAliases',
-    'portalAddress',
-
+    'postalAddress',
     'passwords',
 )
 
