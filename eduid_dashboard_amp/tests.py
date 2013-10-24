@@ -187,3 +187,26 @@ class AttributeFetcherTests(MongoTestCase):
                 }
             }
         )
+
+    def test_NIN_normalization(self):
+        user_id = self.conn['test'].profiles.insert({
+            'mail': 'john@example.com',
+            'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
+            'norEduPersonNIN': [{u'active': False,
+                                 u'norEduPersonNIN': u'123456781234',
+                                 u'verified': False},
+                                {u'active': False,
+                                 u'norEduPersonNIN': u'123456781235',
+                                 u'verified': True}],
+        })
+        # Test that the verified NIN is returned in a list
+        self.assertEqual(
+            attribute_fetcher(self.conn['test'], user_id),
+            {
+                '$set': {
+                    'mail': 'john@example.com',
+                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                    'norEduPersonNIN': ['123456781235'],
+                }
+            }
+        )
