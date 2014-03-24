@@ -192,12 +192,7 @@ class AttributeFetcherTests(MongoTestCase):
         user_id = self.conn['test'].profiles.insert({
             'mail': 'john@example.com',
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
-            'norEduPersonNIN': [{u'active': False,
-                                 u'norEduPersonNIN': u'123456781234',
-                                 u'verified': False},
-                                {u'active': False,
-                                 u'norEduPersonNIN': u'123456781235',
-                                 u'verified': True}],
+            'norEduPersonNIN': [u'123456781235'],
         })
         # Test that the verified NIN is returned in a list
         self.assertEqual(
