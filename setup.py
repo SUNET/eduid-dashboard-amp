@@ -8,11 +8,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-version = '0.2.0'
+version = '0.2.1'
 
 requires = [
     'pymongo==2.6.3',
-    'eduid_am==0.4.2',
+    'eduid_am==0.4.3',
 ]
 
 testing_extras = [
