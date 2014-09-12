@@ -29,11 +29,15 @@ def attribute_fetcher(db, user_id):
 
     # white list of valid attributes for security reasons
     attributes_set = {}
+    attributes_unset = {}
     for attr in WHITELIST_SET_ATTRS:
         value = user.get(attr, None)
-        if value is not None:
+        if value:
             attributes_set[attr] = value
+        else:
+            attributes_unset[attr] = value
 
     attributes['$set'] = attributes_set
+    attributes['$unset'] = attributes_unset
 
     return attributes
