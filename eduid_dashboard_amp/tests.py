@@ -195,13 +195,35 @@ class AttributeFetcherTests(MongoTestCase):
             'norEduPersonNIN': [u'123456781235'],
         })
         # Test that the verified NIN is returned in a list
+        attributes = attribute_fetcher(self.conn['test'], user_id)
         self.assertEqual(
-            attribute_fetcher(self.conn['test'], user_id),
+            attributes,
             {
                 '$set': {
                     'mail': 'john@example.com',
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
                     'norEduPersonNIN': ['123456781235'],
+                }
+            }
+        )
+
+    def test_NIN_unset(self):
+        user_id = self.conn['test'].profiles.insert({
+            'mail': 'john@example.com',
+            'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
+            'norEduPersonNIN': [],
+        })
+        # Test that a blank norEduPersonNIN is unset
+        attributes = attribute_fetcher(self.conn['test'], user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'john@example.com',
+                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                },
+                '$unset': {
+                    'norEduPersonNIN': [],
                 }
             }
         )

@@ -34,10 +34,11 @@ def attribute_fetcher(db, user_id):
         value = user.get(attr, None)
         if value:
             attributes_set[attr] = value
-        else:
+        elif value is not None:
             attributes_unset[attr] = value
 
     attributes['$set'] = attributes_set
-    attributes['$unset'] = attributes_unset
+    if attributes_unset:
+        attributes['$unset'] = attributes_unset
 
     return attributes
