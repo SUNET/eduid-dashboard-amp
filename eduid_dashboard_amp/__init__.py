@@ -19,6 +19,11 @@ WHITELIST_SET_ATTRS = (
     'passwords',
 )
 
+WHITELIST_UNSET_ATTRS = (
+    'mail',
+    'norEduPersonNIN',
+)
+
 
 def attribute_fetcher(db, user_id):
     attributes = {}
@@ -34,7 +39,7 @@ def attribute_fetcher(db, user_id):
         value = user.get(attr, None)
         if value:
             attributes_set[attr] = value
-        elif value is not None:
+        elif attr in WHITELIST_UNSET_ATTRS:
             attributes_unset[attr] = value
 
     attributes['$set'] = attributes_set
