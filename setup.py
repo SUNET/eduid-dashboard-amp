@@ -11,8 +11,8 @@ CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 version = '0.2.5'
 
 requires = [
-    'pymongo==2.6.3',
-    'eduid_am==0.4.9-dev',
+    'pymongo',		# let eduid_am dictate pymongo version
+    'eduid_am==0.4.9',
 ]
 
 testing_extras = [
