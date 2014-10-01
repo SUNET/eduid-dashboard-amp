@@ -36,6 +36,9 @@ class AttributeFetcherTests(MongoTestCase):
                         'verified': True,
                     }],
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0)
+                },
+                '$unset': {
+                    'norEduPersonNIN': None
                 }
             }
         )
@@ -61,6 +64,9 @@ class AttributeFetcherTests(MongoTestCase):
                         'verified': True,
                     }],
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0)
+                },
+                '$unset': {
+                    'norEduPersonNIN': None
                 }
             }
         )
@@ -86,6 +92,9 @@ class AttributeFetcherTests(MongoTestCase):
                     }],
                     'displayName': 'John',
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                },
+                '$unset': {
+                    'norEduPersonNIN': None
                 }
             }
         )
@@ -105,6 +114,7 @@ class AttributeFetcherTests(MongoTestCase):
         )
 
     def test_append_attributes(self):
+        self.maxDiff = None
         user_id = self.conn['test'].profiles.insert({
             'mail': 'john@example.com',
             'mailAliases': [{
@@ -117,42 +127,52 @@ class AttributeFetcherTests(MongoTestCase):
                 'salt': '456',
             }]
         })
-        self.assertEqual(
-            attribute_fetcher(self.conn['test'], user_id),
-            {
-                '$set': {
-                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
-                    'mail': 'john@example.com',
-                    'mailAliases': [{
-                        'email': 'john@example.com',
-                        'verified': True,
-                    }],
 
-                    'passwords': [{
-                        'id': u'123',
-                        'salt': u'456',
-                    }]
-                }
+        actual_update = attribute_fetcher(self.conn['test'], user_id)
+        expected_update = {
+            '$set': {
+                'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                'mail': 'john@example.com',
+                'mailAliases': [{
+                                'email': 'john@example.com',
+                                'verified': True,
+                                }],
+                'passwords': [{
+                              'id': u'123',
+                              'salt': u'456',
+                              }]
+            },
+            '$unset': {
+                'norEduPersonNIN': None
             }
+        }
+        self.assertEqual(
+            actual_update,
+            expected_update
         )
 
+        actual_update = attribute_fetcher(self.conn['test'], user_id)
+        expected_update = {
+            '$set': {
+                'mail': 'john@example.com',
+                'mailAliases': [{
+                                'email': 'john@example.com',
+                                'verified': True,
+                                }],
+                'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                'passwords': [{
+                    'id': u'123',
+                    'salt': u'456',
+                }]
+            },
+            '$unset': {
+                'norEduPersonNIN': None
+            }
+        }
         # Don't repeat the password
         self.assertEqual(
-            attribute_fetcher(self.conn['test'], user_id),
-            {
-                '$set': {
-                    'mail': 'john@example.com',
-                    'mailAliases': [{
-                        'email': 'john@example.com',
-                        'verified': True,
-                    }],
-                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
-                    'passwords': [{
-                        'id': u'123',
-                        'salt': u'456',
-                    }]
-                }
-            }
+            actual_update,
+            expected_update
         )
 
         # Adding a new password
@@ -167,25 +187,31 @@ class AttributeFetcherTests(MongoTestCase):
             }
         })
 
-        self.assertEqual(
-            attribute_fetcher(self.conn['test'], user_id),
-            {
-                '$set': {
-                    'mail': 'john@example.com',
-                    'mailAliases': [{
-                        'email': 'john@example.com',
-                        'verified': True,
-                    }],
-                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
-                    'passwords': [{
-                        'id': u'123',
-                        'salt': u'456',
-                    }, {
-                        'id': u'123a',
-                        'salt': u'456',
-                    }]
-                }
+        actual_update = attribute_fetcher(self.conn['test'], user_id)
+        expected_update = {
+            '$set': {
+                'mail': 'john@example.com',
+                'mailAliases': [{
+                                'email': 'john@example.com',
+                                'verified': True,
+                                }],
+                'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                'passwords': [{
+                    'id': u'123',
+                    'salt': u'456',
+                }, {
+                    'id': u'123a',
+                    'salt': u'456',
+                }]
+            },
+            '$unset': {
+                'norEduPersonNIN': None
             }
+        }
+
+        self.assertEqual(
+            actual_update,
+            expected_update
         )
 
     def test_NIN_normalization(self):
@@ -195,13 +221,35 @@ class AttributeFetcherTests(MongoTestCase):
             'norEduPersonNIN': [u'123456781235'],
         })
         # Test that the verified NIN is returned in a list
+        attributes = attribute_fetcher(self.conn['test'], user_id)
         self.assertEqual(
-            attribute_fetcher(self.conn['test'], user_id),
+            attributes,
             {
                 '$set': {
                     'mail': 'john@example.com',
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
                     'norEduPersonNIN': ['123456781235'],
+                }
+            }
+        )
+
+    def test_NIN_unset(self):
+        user_id = self.conn['test'].profiles.insert({
+            'mail': 'john@example.com',
+            'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
+            'norEduPersonNIN': [],
+        })
+        # Test that a blank norEduPersonNIN is unset
+        attributes = attribute_fetcher(self.conn['test'], user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'john@example.com',
+                    'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
+                },
+                '$unset': {
+                    'norEduPersonNIN': [],
                 }
             }
         )
