@@ -25,6 +25,30 @@ WHITELIST_UNSET_ATTRS = (
 )
 
 
+def value_filter(attr, value):
+    if value:
+        # Check it we need to filter values for this attribute
+        #if attr == 'norEduPersonNIN':
+        #   value = filter_nin(value)
+        pass
+    return value
+
+
+def filter_nin(value):
+    """
+    :param value: dict
+    :return: list
+
+    This function will compile a users verified NINs to a list of strings.
+    """
+    result = []
+    for item in value:
+        verified = item.get('verfied', False)
+        if verified and type(verified) == bool:  # Be sure that it's not something else that evaluates as True in Python
+            result.append(item['nin'])
+    return result
+
+
 def attribute_fetcher(db, user_id):
     attributes = {}
 
@@ -36,7 +60,7 @@ def attribute_fetcher(db, user_id):
     attributes_set = {}
     attributes_unset = {}
     for attr in WHITELIST_SET_ATTRS:
-        value = user.get(attr, None)
+        value = value_filter(attr, user.get(attr, None))
         if value:
             attributes_set[attr] = value
         elif attr in WHITELIST_UNSET_ATTRS:
