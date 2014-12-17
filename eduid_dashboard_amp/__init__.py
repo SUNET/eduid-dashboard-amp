@@ -22,6 +22,7 @@ WHITELIST_SET_ATTRS = (
 WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
+    'mailAliases',
 )
 
 
