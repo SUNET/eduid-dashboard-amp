@@ -217,6 +217,10 @@ class AttributeFetcherTests(MongoTestCase):
     def test_NIN_normalization(self):
         user_id = self.conn['test'].profiles.insert({
             'mail': 'john@example.com',
+            'mailAliases': [{
+                'email': 'john@example.com',
+                'verified': True,
+            }],
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
             'norEduPersonNIN': [u'123456781235'],
         })
@@ -227,6 +231,7 @@ class AttributeFetcherTests(MongoTestCase):
             {
                 '$set': {
                     'mail': 'john@example.com',
+                    'mailAliases': [{'email': 'john@example.com', 'verified': True}],
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
                     'norEduPersonNIN': ['123456781235'],
                 }
@@ -235,7 +240,8 @@ class AttributeFetcherTests(MongoTestCase):
 
     def test_NIN_unset(self):
         user_id = self.conn['test'].profiles.insert({
-            'mail': 'john@example.com',
+            'mail': '',
+            'mailAliases': [],
             'date': datetime.datetime(2013, 4, 1, 10, 10, 20),
             'norEduPersonNIN': [],
         })
@@ -245,11 +251,12 @@ class AttributeFetcherTests(MongoTestCase):
             attributes,
             {
                 '$set': {
-                    'mail': 'john@example.com',
                     'date': datetime.datetime(2013, 4, 1, 10, 10, 20, 0),
                 },
                 '$unset': {
-                    'norEduPersonNIN': [],
+                    'mail': u'',
+                    'mailAliases': [],
+                    'norEduPersonNIN': []
                 }
             }
         )
