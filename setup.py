@@ -12,7 +12,7 @@ version = '0.2.9'
 
 requires = [
     'pymongo>=2.8,<3',	# CI fails to build unless a version (same as in eduid_am) is required here :(
-    'eduid_am>=0.5.2',
+    'eduid_am>=0.5.3',
 ]
 
 testing_extras = [
