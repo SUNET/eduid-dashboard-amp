@@ -1,4 +1,4 @@
-from eduid_am.exceptions import UserDoesNotExist
+from eduid_userdb.exceptions import UserDoesNotExist
 
 
 WHITELIST_SET_ATTRS = (
