@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-version = '0.3.0b0'
+version = '0.3.0b1'
 
 requires = [
     'pymongo>=2.8,<3',	# CI fails to build unless a version (same as in eduid_am) is required here :(
