@@ -3,14 +3,18 @@ import datetime
 import bson
 
 from eduid_userdb.exceptions import UserDoesNotExist
-from eduid_userdb.tests import MongoTestCase
+from eduid_userdb.testing import MongoTestCase
 from eduid_dashboard_amp import attribute_fetcher
+from eduid_am.celery import celery, get_attribute_manager
 
 
 TEST_DB_NAME = 'eduid_dashboard_test'
 
 
 class AttributeFetcherTests(MongoTestCase):
+
+    def setUp(self):
+        super(AttributeFetcherTests, self).setUp(celery, get_attribute_manager)
 
     def test_invalid_user(self):
         self.assertRaises(UserDoesNotExist, attribute_fetcher,
