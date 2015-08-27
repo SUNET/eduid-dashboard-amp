@@ -62,7 +62,7 @@ class DashboardAMPContext(object):
         self.dashboard_userdb = DashboardUserDB(db_uri)
 
 
-def plugin_init(db_uri, am_conf):
+def plugin_init(am_conf):
     """
     Create a private context for this plugin.
 
@@ -75,7 +75,7 @@ def plugin_init(db_uri, am_conf):
     @type db_uri: str or unicode
     @type am_conf: dict
     """
-    return DashboardAMPContext(db_uri)
+    return DashboardAMPContext(am_conf['MONGO_URI'])
 
 
 def attribute_fetcher(context, user_id):
