@@ -45,5 +45,8 @@ setup(name='eduid_dashboard_amp',
       entry_points="""
       [eduid_am.attribute_fetcher]
       eduid_dashboard = eduid_dashboard_amp:attribute_fetcher
+
+      [eduid_am.plugin_init]
+      eduid_dashboard = eduid_dashboard_amp:plugin_init
       """,
       )

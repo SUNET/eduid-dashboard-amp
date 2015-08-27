@@ -2,8 +2,8 @@ import datetime
 
 import bson
 
-from eduid_am.exceptions import UserDoesNotExist
-from eduid_am.tests import MongoTestCase
+from eduid_userdb.exceptions import UserDoesNotExist
+from eduid_userdb.tests import MongoTestCase
 from eduid_dashboard_amp import attribute_fetcher
 
 
