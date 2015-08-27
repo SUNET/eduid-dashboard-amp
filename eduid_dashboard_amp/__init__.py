@@ -1,5 +1,8 @@
 from eduid_userdb.exceptions import UserDoesNotExist
 from eduid_userdb.dashboard import DashboardUserDB
+from celery.utils.log import get_task_logger
+
+logger = get_task_logger(__name__)
 
 WHITELIST_SET_ATTRS = (
     'givenName',
@@ -92,11 +95,9 @@ def attribute_fetcher(context, user_id):
     """
 
     attributes = {}
-
+    logger.debug('Trying to get user with _id: {} from {}.'.format(user_id, context.dashboard_userdb))
     user = context.dashboard_userdb.get_user_by_id(user_id)
-    if user is None:
-        raise UserDoesNotExist("No user matching _id='%s'" % user_id)
-
+    logger.debug('User: {} found.'.format(user))
     user_dict = user.to_dict(old_userdb_format=True)
 
     # white list of valid attributes for security reasons
@@ -108,6 +109,9 @@ def attribute_fetcher(context, user_id):
             attributes_set[attr] = value
         elif attr in WHITELIST_UNSET_ATTRS:
             attributes_unset[attr] = value
+
+    logger.debug('Will set attributes: {}'.format(attributes_set))
+    logger.debug('Will remove attributes: {}'.format(attributes_unset))
 
     attributes['$set'] = attributes_set
     if attributes_unset:
