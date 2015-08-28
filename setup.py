@@ -1,4 +1,3 @@
-import sys
 import os
 
 from setuptools import setup, find_packages
@@ -8,11 +7,11 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-version = '0.3.0b1'
+version = '0.3.0b4'
 
 requires = [
-    'pymongo>=2.8,<3',	# CI fails to build unless a version (same as in eduid_am) is required here :(
-    'eduid_am >= 0.6.0b0, < 0.7.0',
+    'pymongo >= 2.8,<3',  # CI fails to build unless a version (same as in eduid_am) is required here :(
+    'eduid_am >= 0.6.0-dev, < 0.7.0',
     'eduid_userdb >= 0.0.1, < 0.1.0',
 ]
 
@@ -25,8 +24,9 @@ testing_extras = [
 
 setup(name='eduid-dashboard-amp',
       version=version,
-      description="eduID DashboardAttribute Manager Plugin",
+      description='eduID Dashboard Attribute Manager Plugin',
       long_description=README + '\n\n' + CHANGES,
+    # TODO: add classifiers
       classifiers=[
           # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       ],
@@ -45,5 +45,8 @@ setup(name='eduid-dashboard-amp',
       entry_points="""
       [eduid_am.attribute_fetcher]
       eduid_dashboard = eduid_dashboard_amp:attribute_fetcher
+
+      [eduid_am.plugin_init]
+      eduid_dashboard = eduid_dashboard_amp:plugin_init
       """,
       )

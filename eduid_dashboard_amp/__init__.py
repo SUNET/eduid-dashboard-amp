@@ -1,5 +1,8 @@
 from eduid_userdb.exceptions import UserDoesNotExist
+from eduid_userdb.dashboard import DashboardUserDB
+from celery.utils.log import get_task_logger
 
+logger = get_task_logger(__name__)
 
 WHITELIST_SET_ATTRS = (
     'givenName',
@@ -50,22 +53,65 @@ def filter_nin(value):
     return result
 
 
-def attribute_fetcher(db, user_id):
-    attributes = {}
+class DashboardAMPContext(object):
+    """
+    Private data for this AM plugin.
+    """
 
-    user = db.profiles.find_one({'_id': user_id})
-    if user is None:
-        raise UserDoesNotExist("No user matching _id='%s'" % user_id)
+    def __init__(self, db_uri):
+        self.dashboard_userdb = DashboardUserDB(db_uri)
+
+
+def plugin_init(am_conf):
+    """
+    Create a private context for this plugin.
+
+    Whatever is returned by this function will get passed to attribute_fetcher() as
+    the `context' argument.
+
+    @param db_uri: Database URI from the Attribute Manager.
+    @am_conf: Attribute Manager configuration data.
+
+    @type db_uri: str or unicode
+    @type am_conf: dict
+    """
+    return DashboardAMPContext(am_conf['MONGO_URI'])
+
+
+def attribute_fetcher(context, user_id):
+    """
+    Read a user from the Dashboard private userdb and return an update
+    dict to let the Attribute Manager update the use in the central
+    eduid user database.
+
+    :param context: Plugin context, see plugin_init above.
+    :param user_id: Unique identifier
+
+    :type context: DashboardAMPContext
+    :type user_id: ObjectId
+
+    :return: update dict
+    :rtype: dict
+    """
+
+    attributes = {}
+    logger.debug('Trying to get user with _id: {} from {}.'.format(user_id, context.dashboard_userdb))
+    user = context.dashboard_userdb.get_user_by_id(user_id)
+    logger.debug('User: {} found.'.format(user))
+    user_dict = user.to_dict(old_userdb_format=True)
 
     # white list of valid attributes for security reasons
     attributes_set = {}
     attributes_unset = {}
     for attr in WHITELIST_SET_ATTRS:
-        value = value_filter(attr, user.get(attr, None))
+        value = value_filter(attr, user_dict.get(attr, None))
         if value:
             attributes_set[attr] = value
         elif attr in WHITELIST_UNSET_ATTRS:
             attributes_unset[attr] = value
+
+    logger.debug('Will set attributes: {}'.format(attributes_set))
+    logger.debug('Will remove attributes: {}'.format(attributes_unset))
 
     attributes['$set'] = attributes_set
     if attributes_unset:
