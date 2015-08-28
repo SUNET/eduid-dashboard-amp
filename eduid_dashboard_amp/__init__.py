@@ -8,17 +8,14 @@ WHITELIST_SET_ATTRS = (
     'givenName',
     'sn',
     'displayName',
-    'photo',
     'preferredLanguage',
     'mail',
-    'date',  # last modification
 
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
     'eduPersonEntitlement',
     'mobile',
     'mailAliases',
-    'postalAddress',
     'passwords',
 )
 
@@ -69,11 +66,11 @@ def plugin_init(am_conf):
     Whatever is returned by this function will get passed to attribute_fetcher() as
     the `context' argument.
 
-    @param db_uri: Database URI from the Attribute Manager.
-    @am_conf: Attribute Manager configuration data.
+    :am_conf: Attribute Manager configuration data.
 
-    @type db_uri: str or unicode
-    @type am_conf: dict
+    :type am_conf: dict
+
+    :rtype: DashboardAMPContext
     """
     return DashboardAMPContext(am_conf['MONGO_URI'])
 
