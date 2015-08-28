@@ -22,7 +22,7 @@ testing_extras = [
 ]
 
 
-setup(name='eduid_dashboard_amp',
+setup(name='eduid-dashboard-amp',
       version=version,
       description='eduID Dashboard Attribute Manager Plugin',
       long_description=README + '\n\n' + CHANGES,
