@@ -34,6 +34,10 @@ class AttributeFetcherTests(MongoTestCase):
                 'email': 'john@example.com',
                 'verified': True,
             }],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
         }
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
@@ -46,6 +50,10 @@ class AttributeFetcherTests(MongoTestCase):
                     'mailAliases': [{
                         'email': 'john@example.com',
                         'verified': True,
+                    }],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                 },
                 '$unset': {
@@ -63,6 +71,10 @@ class AttributeFetcherTests(MongoTestCase):
                 'verified': True,
             }],
             'malicious': 'hacker',
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
         }
         # Write bad entry into database
         user_id = self.plugin_context.dashboard_userdb._coll.insert(_data)
@@ -79,6 +91,10 @@ class AttributeFetcherTests(MongoTestCase):
                 'email': 'john@example.com',
                 'verified': True,
             }],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
         }
 
         user = DashboardUser(data = _data)
@@ -94,6 +110,10 @@ class AttributeFetcherTests(MongoTestCase):
                         'verified': True,
                     }],
                     'displayName': 'John',
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
                 },
                 '$unset': {
                     'norEduPersonNIN': None
@@ -218,6 +238,10 @@ class AttributeFetcherTests(MongoTestCase):
                 'verified': True,
             }],
             'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
         }
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
@@ -230,6 +254,10 @@ class AttributeFetcherTests(MongoTestCase):
                     'mail': 'john@example.com',
                     'mailAliases': [{'email': 'john@example.com', 'verified': True}],
                     'norEduPersonNIN': ['123456781235'],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
                 }
             }
         )
@@ -243,6 +271,10 @@ class AttributeFetcherTests(MongoTestCase):
                 'verified': True,
             }],
             'norEduPersonNIN': [],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
         }
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
@@ -254,6 +286,10 @@ class AttributeFetcherTests(MongoTestCase):
                 '$set': {
                     'mail': 'test@example.com',
                     'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
