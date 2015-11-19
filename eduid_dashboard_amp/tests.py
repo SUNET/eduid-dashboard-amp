@@ -18,7 +18,7 @@ class AttributeFetcherTests(MongoTestCase):
         super(AttributeFetcherTests, self).setUp(celery, get_attribute_manager)
         self.plugin_context = plugin_init(celery.conf)
 
-        for userdoc in self.amdb._get_all_userdocs():
+        for userdoc in self.amdb._get_all_docs():
             dashboard_user = DashboardUser(data = userdoc)
             self.plugin_context.dashboard_userdb.save(dashboard_user, check_sync=False)
 
