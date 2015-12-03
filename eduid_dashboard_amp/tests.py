@@ -22,6 +22,8 @@ class AttributeFetcherTests(MongoTestCase):
             dashboard_user = DashboardUser(data = userdoc)
             self.plugin_context.dashboard_userdb.save(dashboard_user, check_sync=False)
 
+        self.maxDiff = None
+
     def test_invalid_user(self):
         with self.assertRaises(UserDoesNotExist):
             attribute_fetcher(self.plugin_context, bson.ObjectId('0' * 24))
@@ -33,6 +35,11 @@ class AttributeFetcherTests(MongoTestCase):
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+            }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336',
+                'primary': True
             }],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -55,6 +62,11 @@ class AttributeFetcherTests(MongoTestCase):
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
+                    'mobile': [{
+                        'verified': True,
+                        'mobile': '+46700011336',
+                        'primary': True
+                    }],
                 },
                 '$unset': {
                     'norEduPersonNIN': None
@@ -69,6 +81,10 @@ class AttributeFetcherTests(MongoTestCase):
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+            }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336'
             }],
             'malicious': 'hacker',
             'passwords': [{
@@ -90,6 +106,10 @@ class AttributeFetcherTests(MongoTestCase):
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+            }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336'
             }],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -113,6 +133,11 @@ class AttributeFetcherTests(MongoTestCase):
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'mobile': [{
+                        'verified': True,
+                        'mobile': '+46700011336',
+                        'primary': True
                     }],
                 },
                 '$unset': {
@@ -140,6 +165,11 @@ class AttributeFetcherTests(MongoTestCase):
                 'email': 'john@example.com',
                 'verified': True,
             }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336',
+                'primary': True
+            }],
             'passwords': [{
                 'id': bson.ObjectId('1' * 24),
                 'salt': '456',
@@ -156,6 +186,11 @@ class AttributeFetcherTests(MongoTestCase):
                                 'email': 'john@example.com',
                                 'verified': True,
                                 }],
+                'mobile': [{
+                    'verified': True,
+                    'mobile': '+46700011336',
+                    'primary': True
+                }],
                 'passwords': [{
                               'id': bson.ObjectId('1' * 24),
                               'salt': u'456',
@@ -178,6 +213,11 @@ class AttributeFetcherTests(MongoTestCase):
                                 'email': 'john@example.com',
                                 'verified': True,
                                 }],
+                'mobile': [{
+                    'verified': True,
+                    'mobile': '+46700011336',
+                    'primary': True
+                }],
                 'passwords': [{
                     'id': bson.ObjectId('1' * 24),
                     'salt': u'456',
@@ -211,6 +251,11 @@ class AttributeFetcherTests(MongoTestCase):
                                 'email': 'john@example.com',
                                 'verified': True,
                                 }],
+                'mobile': [{
+                    'verified': True,
+                    'mobile': '+46700011336',
+                    'primary': True
+                }],
                 'passwords': [{
                     'id': bson.ObjectId('1' * 24),
                     'salt': u'456',
@@ -237,6 +282,11 @@ class AttributeFetcherTests(MongoTestCase):
                 'email': 'john@example.com',
                 'verified': True,
             }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336',
+                'primary': True
+            }],
             'norEduPersonNIN': [u'123456781235'],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -253,6 +303,7 @@ class AttributeFetcherTests(MongoTestCase):
                 '$set': {
                     'mail': 'john@example.com',
                     'mailAliases': [{'email': 'john@example.com', 'verified': True}],
+                    'mobile': [{'verified': True, 'mobile': '+46700011336', 'primary': True}],
                     'norEduPersonNIN': ['123456781235'],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
@@ -270,6 +321,11 @@ class AttributeFetcherTests(MongoTestCase):
                 'email': 'test@example.com',
                 'verified': True,
             }],
+            'mobile': [{
+                'verified': True,
+                'mobile': '+46700011336',
+                'primary': True
+            }],
             'norEduPersonNIN': [],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -286,6 +342,11 @@ class AttributeFetcherTests(MongoTestCase):
                 '$set': {
                     'mail': 'test@example.com',
                     'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mobile': [{
+                        'verified': True,
+                        'mobile': '+46700011336',
+                        'primary': True
+                    }],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -293,6 +354,43 @@ class AttributeFetcherTests(MongoTestCase):
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
+                }
+            }
+        )
+
+    def test_mobile_unset(self):
+        _data = {
+            'eduPersonPrincipalName': 'test-test',
+            'mail': 'test@example.com',
+            'mailAliases': [{
+                'email': 'test@example.com',
+                'verified': True,
+            }],
+            'mobile': [],
+            'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
+        }
+        user = DashboardUser(data=_data)
+        self.plugin_context.dashboard_userdb.save(user)
+        # Test that a blank norEduPersonNIN is unset
+        attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'test@example.com',
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'norEduPersonNIN': ['123456781235'],
+                },
+                '$unset': {
+                    'mobile': None,
                 }
             }
         )
