@@ -23,6 +23,7 @@ WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
+    'mobile'
 )
 
 
