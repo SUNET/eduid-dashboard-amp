@@ -17,6 +17,7 @@ WHITELIST_SET_ATTRS = (
     'mobile',
     'mailAliases',
     'passwords',
+    'letter_proofing_data',
 )
 
 WHITELIST_UNSET_ATTRS = (
@@ -24,6 +25,7 @@ WHITELIST_UNSET_ATTRS = (
     'norEduPersonNIN',
     'mailAliases',
     'mobile'
+    'letter_proofing_data',
 )
 
 
