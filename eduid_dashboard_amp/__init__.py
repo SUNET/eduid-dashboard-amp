@@ -24,8 +24,7 @@ WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
-    'mobile'
-    'letter_proofing_data',
+    'mobile',
 )
 
 
