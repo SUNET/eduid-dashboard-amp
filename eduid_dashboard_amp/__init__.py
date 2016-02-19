@@ -18,6 +18,7 @@ WHITELIST_SET_ATTRS = (
     'mailAliases',
     'passwords',
     'letter_proofing_data',
+    'terminated',
 )
 
 WHITELIST_UNSET_ATTRS = (
@@ -97,7 +98,7 @@ def attribute_fetcher(context, user_id):
     logger.debug('Trying to get user with _id: {} from {}.'.format(user_id, context.dashboard_userdb))
     user = context.dashboard_userdb.get_user_by_id(user_id)
     logger.debug('User: {} found.'.format(user))
-    user_dict = user.to_dict(old_userdb_format=True)
+    user_dict = user.to_dict(old_userdb_format=False)
 
     # white list of valid attributes for security reasons
     attributes_set = {}
