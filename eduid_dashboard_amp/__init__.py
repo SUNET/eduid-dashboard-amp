@@ -6,7 +6,7 @@ logger = get_task_logger(__name__)
 
 WHITELIST_SET_ATTRS = (
     'givenName',
-    'sn',
+    'surname',
     'displayName',
     'preferredLanguage',
     'mail',
@@ -14,7 +14,7 @@ WHITELIST_SET_ATTRS = (
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
     'eduPersonEntitlement',
-    'mobile',
+    'phone_numbers',
     'mailAliases',
     'passwords',
     'letter_proofing_data',
@@ -25,7 +25,7 @@ WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
-    'mobile',
+    'phone_numbers',
 )
 
 
