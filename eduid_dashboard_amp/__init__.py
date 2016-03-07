@@ -14,7 +14,7 @@ WHITELIST_SET_ATTRS = (
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
     'eduPersonEntitlement',
-    'phone_numbers',
+    'phone',
     'mailAliases',
     'passwords',
     'letter_proofing_data',
@@ -25,7 +25,7 @@ WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
-    'phone_numbers',
+    'phone',
 )
 
 
