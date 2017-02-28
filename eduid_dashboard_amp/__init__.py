@@ -6,7 +6,7 @@ logger = get_task_logger(__name__)
 
 WHITELIST_SET_ATTRS = (
     'givenName',
-    'sn',
+    'surname',
     'displayName',
     'preferredLanguage',
     'mail',
@@ -14,17 +14,18 @@ WHITELIST_SET_ATTRS = (
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
     'eduPersonEntitlement',
-    'mobile',
+    'phone',
     'mailAliases',
     'passwords',
     'letter_proofing_data',
+    'terminated',
 )
 
 WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
-    'mobile',
+    'phone',
 )
 
 
@@ -97,7 +98,7 @@ def attribute_fetcher(context, user_id):
     logger.debug('Trying to get user with _id: {} from {}.'.format(user_id, context.dashboard_userdb))
     user = context.dashboard_userdb.get_user_by_id(user_id)
     logger.debug('User: {} found.'.format(user))
-    user_dict = user.to_dict(old_userdb_format=True)
+    user_dict = user.to_dict(old_userdb_format=False)
 
     # white list of valid attributes for security reasons
     attributes_set = {}
