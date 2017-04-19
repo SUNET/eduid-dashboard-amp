@@ -6,7 +6,8 @@ logger = get_task_logger(__name__)
 
 WHITELIST_SET_ATTRS = (
     'givenName',
-    'surname',
+    'surname',  # New format
+    'sn',  # Old format
     'displayName',
     'preferredLanguage',
     'mail',
@@ -14,7 +15,8 @@ WHITELIST_SET_ATTRS = (
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
     'norEduPersonNIN',
     'eduPersonEntitlement',
-    'phone',
+    'phone',  # New format
+    'mobile',  # Old format
     'mailAliases',
     'passwords',
     'letter_proofing_data',
@@ -25,7 +27,8 @@ WHITELIST_UNSET_ATTRS = (
     'mail',
     'norEduPersonNIN',
     'mailAliases',
-    'phone',
+    'phone',  # New format
+    'mobile',  # Old format
 )
 
 
@@ -98,7 +101,12 @@ def attribute_fetcher(context, user_id):
     logger.debug('Trying to get user with _id: {} from {}.'.format(user_id, context.dashboard_userdb))
     user = context.dashboard_userdb.get_user_by_id(user_id)
     logger.debug('User: {} found.'.format(user))
-    user_dict = user.to_dict(old_userdb_format=False)
+
+    # ft:staging, ft:prod, lundberg:staging, lundberg:prod
+    if user.eppn in ['vofaz-tajod', 'takaj-sosup', 'tovuk-zizih', 'rubom-lujov']:
+        user_dict = user.to_dict(old_userdb_format=False)
+    else:
+        user_dict = user.to_dict(old_userdb_format=True)  # Do not try to save new format for other users
 
     # white list of valid attributes for security reasons
     attributes_set = {}
