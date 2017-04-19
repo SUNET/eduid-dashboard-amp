@@ -69,7 +69,8 @@ class AttributeFetcherTests(MongoTestCase):
                     }],
                 },
                 '$unset': {
-                    'norEduPersonNIN': None
+                    'norEduPersonNIN': None,
+                    'phone': None
                 }
             }
         )
@@ -141,7 +142,8 @@ class AttributeFetcherTests(MongoTestCase):
                     }],
                 },
                 '$unset': {
-                    'norEduPersonNIN': None
+                    'norEduPersonNIN': None,
+                    'phone': None
                 }
             }
         )
@@ -197,7 +199,8 @@ class AttributeFetcherTests(MongoTestCase):
                               }]
             },
             '$unset': {
-                'norEduPersonNIN': None
+                'norEduPersonNIN': None,
+                'phone': None
             }
         }
         self.assertEqual(
@@ -224,7 +227,8 @@ class AttributeFetcherTests(MongoTestCase):
                 }]
             },
             '$unset': {
-                'norEduPersonNIN': None
+                'norEduPersonNIN': None,
+                'phone': None
             }
         }
         # Don't repeat the password
@@ -265,7 +269,8 @@ class AttributeFetcherTests(MongoTestCase):
                 }]
             },
             '$unset': {
-                'norEduPersonNIN': None
+                'norEduPersonNIN': None,
+                'phone': None
             }
         }
 
@@ -309,7 +314,11 @@ class AttributeFetcherTests(MongoTestCase):
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
+                },
+                '$unset': {
+                    'phone': None
                 }
+
             }
         )
 
@@ -354,6 +363,7 @@ class AttributeFetcherTests(MongoTestCase):
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
+                    'phone': None
                 }
             }
         )
@@ -391,6 +401,7 @@ class AttributeFetcherTests(MongoTestCase):
                 },
                 '$unset': {
                     'mobile': None,
+                    'phone': None
                 }
             }
         )
