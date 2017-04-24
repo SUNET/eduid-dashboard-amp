@@ -70,6 +70,7 @@ class AttributeFetcherTests(MongoTestCase):
                 },
                 '$unset': {
                     'norEduPersonNIN': None,
+                    'nins': None,
                     'phone': None
                 }
             }
@@ -143,6 +144,7 @@ class AttributeFetcherTests(MongoTestCase):
                 },
                 '$unset': {
                     'norEduPersonNIN': None,
+                    'nins': None,
                     'phone': None
                 }
             }
@@ -200,6 +202,7 @@ class AttributeFetcherTests(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
+                'nins': None,
                 'phone': None
             }
         }
@@ -228,6 +231,7 @@ class AttributeFetcherTests(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
+                'nins': None,
                 'phone': None
             }
         }
@@ -270,6 +274,7 @@ class AttributeFetcherTests(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
+                'nins': None,
                 'phone': None
             }
         }
@@ -316,6 +321,7 @@ class AttributeFetcherTests(MongoTestCase):
                     }],
                 },
                 '$unset': {
+                    'nins': None,
                     'phone': None
                 }
 
@@ -363,6 +369,7 @@ class AttributeFetcherTests(MongoTestCase):
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
+                    'nins': None,
                     'phone': None
                 }
             }
@@ -401,6 +408,7 @@ class AttributeFetcherTests(MongoTestCase):
                 },
                 '$unset': {
                     'mobile': None,
+                    'nins': None,
                     'phone': None
                 }
             }
