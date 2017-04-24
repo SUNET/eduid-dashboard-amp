@@ -13,7 +13,8 @@ WHITELIST_SET_ATTRS = (
     'mail',
 
     # TODO: Arrays must use put or pop, not set, but need more deep refacts
-    'norEduPersonNIN',
+    'norEduPersonNIN',  # Old format
+    'nins',  # New format
     'eduPersonEntitlement',
     'phone',  # New format
     'mobile',  # Old format
@@ -25,7 +26,8 @@ WHITELIST_SET_ATTRS = (
 
 WHITELIST_UNSET_ATTRS = (
     'mail',
-    'norEduPersonNIN',
+    'norEduPersonNIN',  # Old format
+    'nins',  # New format
     'mailAliases',
     'phone',  # New format
     'mobile',  # Old format
@@ -102,8 +104,8 @@ def attribute_fetcher(context, user_id):
     user = context.dashboard_userdb.get_user_by_id(user_id)
     logger.debug('User: {} found.'.format(user))
 
-    # ft:staging, ft:prod, lundberg:staging, lundberg:prod
-    if user.eppn in ['vofaz-tajod', 'takaj-sosup', 'tovuk-zizih', 'rubom-lujov']:
+    # ft:staging, ft:prod, lundberg:staging, lundberg:prod, john:staging, john:prod
+    if user.eppn in ['vofaz-tajod', 'takaj-sosup', 'tovuk-zizih', 'rubom-lujov', 'faraf-livok', 'hofij-zanok']:
         user_dict = user.to_dict(old_userdb_format=False)
     else:
         user_dict = user.to_dict(old_userdb_format=True)  # Do not try to save new format for other users
