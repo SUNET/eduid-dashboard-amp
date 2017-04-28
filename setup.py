@@ -12,13 +12,14 @@ version = '0.3.3b1'
 requires = [
     'pymongo >= 2.8,<3',  # CI fails to build unless a version (same as in eduid_am) is required here :(
     'eduid_am >= 0.6.0, < 0.7.0',
-    'eduid_userdb >= 0.0.4',
+    'eduid_userdb >= 0.2.6b2',
 ]
 
 testing_extras = [
     'nose==1.2.1',
     'nosexcover==1.0.8',
     'coverage==3.6',
+    'freezegun==0.3.8'
 ]
 
 
@@ -26,7 +27,7 @@ setup(name='eduid-dashboard-amp',
       version=version,
       description='eduID Dashboard Attribute Manager Plugin',
       long_description=README + '\n\n' + CHANGES,
-    # TODO: add classifiers
+      # TODO: add classifiers
       classifiers=[
           # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       ],

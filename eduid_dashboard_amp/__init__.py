@@ -1,5 +1,6 @@
-from eduid_userdb.exceptions import UserDoesNotExist
+from datetime import datetime
 from eduid_userdb.dashboard import DashboardUserDB
+from eduid_userdb.util import UTC
 from celery.utils.log import get_task_logger
 
 logger = get_task_logger(__name__)
@@ -63,8 +64,9 @@ class DashboardAMPContext(object):
     Private data for this AM plugin.
     """
 
-    def __init__(self, db_uri):
+    def __init__(self, db_uri, new_user_date):
         self.dashboard_userdb = DashboardUserDB(db_uri)
+        self.new_user_date = datetime.strptime(new_user_date, '%Y-%m-%d').replace(tzinfo=UTC())
 
 
 def plugin_init(am_conf):
@@ -80,7 +82,7 @@ def plugin_init(am_conf):
 
     :rtype: DashboardAMPContext
     """
-    return DashboardAMPContext(am_conf['MONGO_URI'])
+    return DashboardAMPContext(am_conf['MONGO_URI'], am_conf['NEW_USER_DATE'])
 
 
 def attribute_fetcher(context, user_id):
@@ -104,11 +106,17 @@ def attribute_fetcher(context, user_id):
     user = context.dashboard_userdb.get_user_by_id(user_id)
     logger.debug('User: {} found.'.format(user))
 
+    old_userdb_format = True
+    # Save users created after or on new_user_date in the new format
+    primary_mail_ts = user.mail_addresses.primary.created_ts
+    if primary_mail_ts and primary_mail_ts >= context.new_user_date:
+        old_userdb_format = False
+    # Always use new users for the following tests users
     # ft:staging, ft:prod, lundberg:staging, lundberg:prod, john:staging, john:prod
-    if user.eppn in ['vofaz-tajod', 'takaj-sosup', 'tovuk-zizih', 'rubom-lujov', 'faraf-livok', 'hofij-zanok']:
-        user_dict = user.to_dict(old_userdb_format=False)
-    else:
-        user_dict = user.to_dict(old_userdb_format=True)  # Do not try to save new format for other users
+    elif user.eppn in ['vofaz-tajod', 'takaj-sosup', 'tovuk-zizih', 'rubom-lujov', 'faraf-livok', 'hofij-zanok']:
+        old_userdb_format = False
+
+    user_dict = user.to_dict(old_userdb_format)  # Do not try to save new format for other users
 
     # white list of valid attributes for security reasons
     attributes_set = {}
