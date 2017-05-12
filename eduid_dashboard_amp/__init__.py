@@ -32,6 +32,7 @@ WHITELIST_UNSET_ATTRS = (
     'mailAliases',
     'phone',  # New format
     'mobile',  # Old format
+    'terminated',
 )
 
 

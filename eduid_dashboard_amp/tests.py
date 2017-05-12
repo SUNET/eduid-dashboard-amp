@@ -75,7 +75,8 @@ class AttributeFetcherTests(MongoTestCase):
                 '$unset': {
                     'norEduPersonNIN': None,
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -149,7 +150,8 @@ class AttributeFetcherTests(MongoTestCase):
                 '$unset': {
                     'norEduPersonNIN': None,
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -207,7 +209,8 @@ class AttributeFetcherTests(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
         self.assertEqual(
@@ -236,7 +239,8 @@ class AttributeFetcherTests(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
         # Don't repeat the password
@@ -279,7 +283,8 @@ class AttributeFetcherTests(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
 
@@ -326,7 +331,8 @@ class AttributeFetcherTests(MongoTestCase):
                 },
                 '$unset': {
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
 
             }
@@ -374,7 +380,8 @@ class AttributeFetcherTests(MongoTestCase):
                 '$unset': {
                     'norEduPersonNIN': None,
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -413,7 +420,92 @@ class AttributeFetcherTests(MongoTestCase):
                 '$unset': {
                     'mobile': None,
                     'nins': None,
+                    'phone': None,
+                    'terminated': False
+                }
+            }
+        )
+
+    @freeze_time(str(date.today()))
+    def test_terminated_set(self):
+        now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
+        _data = {
+            'eduPersonPrincipalName': 'test-test',
+            'mail': 'test@example.com',
+            'mailAliases': [{
+                'email': 'test@example.com',
+                'verified': True,
+            }],
+            'mobile': [],
+            'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
+            'terminated': True,
+        }
+        user = DashboardUser(data=_data)
+        self.plugin_context.dashboard_userdb.save(user)
+        attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'test@example.com',
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'norEduPersonNIN': ['123456781235'],
+                    'terminated': now
+                },
+                '$unset': {
+                    'mobile': None,
+                    'nins': None,
                     'phone': None
+                }
+            }
+        )
+
+    def test_terminated_unset(self):
+        _data = {
+            'eduPersonPrincipalName': 'test-test',
+            'mail': 'test@example.com',
+            'mailAliases': [{
+                'email': 'test@example.com',
+                'verified': True,
+            }],
+            'mobile': [],
+            'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
+            'terminated': datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC')),
+        }
+        user = DashboardUser(data=_data)
+        self.plugin_context.dashboard_userdb.save(user)
+        user.terminated = False
+        self.plugin_context.dashboard_userdb.save(user)
+        attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'test@example.com',
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'norEduPersonNIN': ['123456781235'],
+                },
+                '$unset': {
+                    'mobile': None,
+                    'nins': None,
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -485,7 +577,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                     'mail': None,
                     'norEduPersonNIN': None,
                     'nins': [],
-                    'mobile': None
+                    'mobile': None,
+                    'terminated': False
                 }
             }
         )
@@ -559,7 +652,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                 '$unset': {
                     'norEduPersonNIN': None,
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -617,7 +711,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
         self.assertEqual(
@@ -646,7 +741,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
         # Don't repeat the password
@@ -689,7 +785,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
             '$unset': {
                 'norEduPersonNIN': None,
                 'nins': None,
-                'phone': None
+                'phone': None,
+                'terminated': False
             }
         }
 
@@ -736,7 +833,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                 },
                 '$unset': {
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
 
             }
@@ -784,7 +882,8 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                 '$unset': {
                     'norEduPersonNIN': None,
                     'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
@@ -823,7 +922,92 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                 '$unset': {
                     'mobile': None,
                     'nins': None,
+                    'phone': None,
+                    'terminated': False
+                }
+            }
+        )
+
+    @freeze_time(str(date.today()))
+    def test_terminated_set(self):
+        now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
+        _data = {
+            'eduPersonPrincipalName': 'test-test',
+            'mail': 'test@example.com',
+            'mailAliases': [{
+                'email': 'test@example.com',
+                'verified': True,
+            }],
+            'mobile': [],
+            'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
+            'terminated': True,
+        }
+        user = DashboardUser(data=_data)
+        self.plugin_context.dashboard_userdb.save(user)
+        attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'test@example.com',
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'norEduPersonNIN': ['123456781235'],
+                    'terminated': now
+                },
+                '$unset': {
+                    'mobile': None,
+                    'nins': None,
                     'phone': None
+                }
+            }
+        )
+
+    def test_terminated_unset(self):
+        _data = {
+            'eduPersonPrincipalName': 'test-test',
+            'mail': 'test@example.com',
+            'mailAliases': [{
+                'email': 'test@example.com',
+                'verified': True,
+            }],
+            'mobile': [],
+            'norEduPersonNIN': [u'123456781235'],
+            'passwords': [{
+                'id': bson.ObjectId('112345678901234567890123'),
+                'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+            }],
+            'terminated': datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC')),
+        }
+        user = DashboardUser(data=_data)
+        self.plugin_context.dashboard_userdb.save(user)
+        user.terminated = False
+        self.plugin_context.dashboard_userdb.save(user)
+        attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        self.assertEqual(
+            attributes,
+            {
+                '$set': {
+                    'mail': 'test@example.com',
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'passwords': [{
+                        'id': bson.ObjectId('112345678901234567890123'),
+                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                    }],
+                    'norEduPersonNIN': ['123456781235'],
+                },
+                '$unset': {
+                    'mobile': None,
+                    'nins': None,
+                    'phone': None,
+                    'terminated': False
                 }
             }
         )
