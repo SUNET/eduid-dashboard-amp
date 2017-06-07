@@ -33,6 +33,7 @@ WHITELIST_UNSET_ATTRS = (
     'phone',  # New format
     'mobile',  # Old format
     'terminated',
+    'sn',  # Old format
 )
 
 
