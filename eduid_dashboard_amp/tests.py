@@ -1,6 +1,6 @@
-from freezegun import freeze_time
 import bson
-from datetime import datetime, date, timedelta
+from freezegun import freeze_time
+from datetime import datetime, date
 
 from eduid_userdb.exceptions import UserDoesNotExist, UserHasUnknownData
 from eduid_userdb.testing import MongoTestCase
@@ -10,9 +10,7 @@ from eduid_am.celery import celery, get_attribute_manager
 
 
 TEST_DB_NAME = 'eduid_dashboard_test'
-# To be able to compare expected dict and dict from attribute_fetcher
-TZ = bson.tz_util.FixedOffset(0, 'UTC')
-TODAY = datetime.now(tz=TZ).date()
+
 
 class AttributeFetcherOldToNewUsersTests(MongoTestCase):
 
@@ -30,16 +28,14 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
         with self.assertRaises(UserDoesNotExist):
             attribute_fetcher(self.plugin_context, bson.ObjectId('0' * 24))
 
-    @freeze_time(TODAY)
     def test_existing_user(self):
-        now = datetime.now(tz=TZ)
         _data = {
             'eduPersonPrincipalName': 'test-test',
             'mail': 'john@example.com',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
-                'added_timestamp': now
+                'added_timestamp': datetime.now()
             }],
             'mobile': [{
                 'verified': True,
@@ -440,7 +436,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
             }
         )
 
-    @freeze_time(str(date.today()))
+    @freeze_time(date.today())
     def test_terminated_set(self):
         now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
@@ -954,7 +950,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
             }
         )
 
-    @freeze_time(str(date.today()))
+    @freeze_time(date.today())
     def test_terminated_set(self):
         now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
