@@ -1,6 +1,6 @@
-from freezegun import freeze_time
 import bson
-from datetime import datetime, date, timedelta
+from freezegun import freeze_time
+from datetime import datetime, date
 
 from eduid_userdb.exceptions import UserDoesNotExist, UserHasUnknownData
 from eduid_userdb.testing import MongoTestCase
@@ -12,10 +12,10 @@ from eduid_am.celery import celery, get_attribute_manager
 TEST_DB_NAME = 'eduid_dashboard_test'
 
 
-class AttributeFetcherTests(MongoTestCase):
+class AttributeFetcherOldToNewUsersTests(MongoTestCase):
 
     def setUp(self):
-        super(AttributeFetcherTests, self).setUp(celery, get_attribute_manager)
+        super(AttributeFetcherOldToNewUsersTests, self).setUp(celery, get_attribute_manager)
         self.plugin_context = plugin_init(celery.conf)
 
         for userdoc in self.amdb._get_all_docs():
@@ -28,21 +28,19 @@ class AttributeFetcherTests(MongoTestCase):
         with self.assertRaises(UserDoesNotExist):
             attribute_fetcher(self.plugin_context, bson.ObjectId('0' * 24))
 
-    @freeze_time(str(date.today()))  # To be able to compare expected dict and dict from attribute_fetcher
     def test_existing_user(self):
-        now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
             'eduPersonPrincipalName': 'test-test',
             'mail': 'john@example.com',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
-                'added_timestamp': now
+                'added_timestamp': datetime.now()
             }],
             'mobile': [{
                 'verified': True,
                 'mobile': '+46700011336',
-                'primary': True
+                'primary': True,
             }],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -52,34 +50,35 @@ class AttributeFetcherTests(MongoTestCase):
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
 
-        self.assertEqual(
-            attribute_fetcher(self.plugin_context, user.user_id),
-            {
-                '$set': {
-                    'mail': 'john@example.com',
-                    'mailAliases': [{
-                        'email': 'john@example.com',
-                        'verified': True,
-                        'added_timestamp': now
-                    }],
-                    'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
-                    }],
-                    'mobile': [{
-                        'verified': True,
-                        'mobile': '+46700011336',
-                        'primary': True
-                    }],
-                },
-                '$unset': {
-                    'norEduPersonNIN': None,
-                    'nins': None,
-                    'phone': None,
-                    'terminated': False
-                }
+        fetched_attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        expected_attributes = {
+            '$set': {
+                'mailAliases': [{
+                    'email': 'john@example.com',
+                    'verified': True,
+                    'primary': True,
+                    'created_ts': fetched_attributes['$set']['mailAliases'][0]['created_ts']
+                }],
+                'passwords': [{
+                    'id': bson.ObjectId('112345678901234567890123'),
+                    'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                }],
+                'phone': [{
+                    'verified': True,
+                    'number': '+46700011336',
+                    'primary': True,
+                }],
+            },
+            '$unset': {
+                'norEduPersonNIN': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
+                'terminated': False
             }
-        )
+        }
+        self.assertDictEqual(fetched_attributes, expected_attributes)
 
     def test_malicious_attributes(self):
         _data = {
@@ -127,30 +126,32 @@ class AttributeFetcherTests(MongoTestCase):
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
 
-        self.assertEqual(
+        self.assertDictEqual(
             attribute_fetcher(self.plugin_context, user.user_id),
             {
                 '$set': {
-                    'mail': 'john@example.com',
                     'mailAliases': [{
                         'email': 'john@example.com',
                         'verified': True,
+                        'primary': True
                     }],
                     'displayName': 'John',
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'mobile': [{
+                    'phone': [{
                         'verified': True,
-                        'mobile': '+46700011336',
+                        'number': '+46700011336',
                         'primary': True
                     }],
                 },
                 '$unset': {
                     'norEduPersonNIN': None,
-                    'nins': None,
-                    'phone': None,
+                    'nins': [],
+                    'mail': None,
+                    'mobile': None,
+                    'sn': None,
                     'terminated': False
                 }
             }
@@ -191,44 +192,14 @@ class AttributeFetcherTests(MongoTestCase):
         actual_update = attribute_fetcher(self.plugin_context, user.user_id)
         expected_update = {
             '$set': {
-                'mail': 'john@example.com',
                 'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                    'email': 'john@example.com',
                     'verified': True,
-                    'mobile': '+46700011336',
                     'primary': True
                 }],
-                'passwords': [{
-                              'id': bson.ObjectId('1' * 24),
-                              'salt': u'456',
-                              }]
-            },
-            '$unset': {
-                'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
-                'terminated': False
-            }
-        }
-        self.assertEqual(
-            actual_update,
-            expected_update
-        )
-
-        actual_update = attribute_fetcher(self.plugin_context, user.user_id)
-        expected_update = {
-            '$set': {
-                'mail': 'john@example.com',
-                'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                'phone': [{
+                    'number': '+46700011336',
                     'verified': True,
-                    'mobile': '+46700011336',
                     'primary': True
                 }],
                 'passwords': [{
@@ -238,13 +209,47 @@ class AttributeFetcherTests(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
+                'terminated': False
+            }
+        }
+        self.assertDictEqual(
+            actual_update,
+            expected_update
+        )
+
+        actual_update = attribute_fetcher(self.plugin_context, user.user_id)
+        expected_update = {
+            '$set': {
+                'mailAliases': [{
+                    'email': 'john@example.com',
+                    'verified': True,
+                    'primary': True
+                }],
+                'phone': [{
+                    'number': '+46700011336',
+                    'verified': True,
+                    'primary': True
+                }],
+                'passwords': [{
+                    'id': bson.ObjectId('1' * 24),
+                    'salt': u'456',
+                }]
+            },
+            '$unset': {
+                'norEduPersonNIN': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
                 'terminated': False
             }
         }
         # Don't repeat the password
-        self.assertEqual(
+        self.assertDictEqual(
             actual_update,
             expected_update
         )
@@ -262,14 +267,14 @@ class AttributeFetcherTests(MongoTestCase):
         actual_update = attribute_fetcher(self.plugin_context, user.user_id)
         expected_update = {
             '$set': {
-                'mail': 'john@example.com',
                 'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                    'email': 'john@example.com',
                     'verified': True,
-                    'mobile': '+46700011336',
+                    'primary': True
+                }],
+                'phone': [{
+                    'number': '+46700011336',
+                    'verified': True,
                     'primary': True
                 }],
                 'passwords': [{
@@ -282,13 +287,15 @@ class AttributeFetcherTests(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
                 'terminated': False
             }
         }
 
-        self.assertEqual(
+        self.assertDictEqual(
             actual_update,
             expected_update
         )
@@ -316,22 +323,23 @@ class AttributeFetcherTests(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that the verified NIN is returned in a list
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'john@example.com',
-                    'mailAliases': [{'email': 'john@example.com', 'verified': True}],
-                    'mobile': [{'verified': True, 'mobile': '+46700011336', 'primary': True}],
-                    'norEduPersonNIN': ['123456781235'],
+                    'mailAliases': [{'email': 'john@example.com', 'verified': True, 'primary': True}],
+                    'phone': [{'verified': True, 'number': '+46700011336', 'primary': True}],
+                    'nins': [{'verified': True, 'number': '123456781235', 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                 },
                 '$unset': {
-                    'nins': None,
-                    'phone': None,
+                    'mail': None,
+                    'mobile': None,
+                    'norEduPersonNIN': None,
+                    'sn': None,
                     'terminated': False
                 }
 
@@ -361,26 +369,27 @@ class AttributeFetcherTests(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that a blank norEduPersonNIN is unset
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
-                    'mobile': [{
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
+                    'phone': [{
                         'verified': True,
-                        'mobile': '+46700011336',
+                        'number': '+46700011336',
                         'primary': True
                     }],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
-                    'nins': None,
-                    'phone': None,
+                    'nins': [],
+                    'mobile': None,
+                    'sn': None,
+                    'mail': None,
                     'terminated': False
                 }
             }
@@ -405,28 +414,29 @@ class AttributeFetcherTests(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that a blank norEduPersonNIN is unset
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
                     'mobile': None,
-                    'nins': None,
                     'phone': None,
+                    'sn': None,
+                    'mail': None,
                     'terminated': False
                 }
             }
         )
 
-    @freeze_time(str(date.today()))
+    @freeze_time(date.today())
     def test_terminated_set(self):
         now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
@@ -447,23 +457,24 @@ class AttributeFetcherTests(MongoTestCase):
         user = DashboardUser(data=_data)
         self.plugin_context.dashboard_userdb.save(user)
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                     'terminated': now
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
                     'mobile': None,
-                    'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'sn': None,
+                    'mail': None,
                 }
             }
         )
@@ -489,34 +500,33 @@ class AttributeFetcherTests(MongoTestCase):
         user.terminated = False
         self.plugin_context.dashboard_userdb.save(user)
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
                     'mobile': None,
-                    'nins': None,
                     'phone': None,
+                    'sn': None,
+                    'mail': None,
                     'terminated': False
                 }
             }
         )
 
 
-class AttributeFetcherTestsNewUsers(MongoTestCase):
+class AttributeFetcherNewToNewUsersTests(MongoTestCase):
 
     def setUp(self):
-        # Set new user date to yesterday
-        am_settings = {'NEW_USER_DATE': str(date.today() - timedelta(days=1))}
-        super(AttributeFetcherTestsNewUsers, self).setUp(celery, get_attribute_manager, am_settings=am_settings)
+        super(AttributeFetcherNewToNewUsersTests, self).setUp(celery, get_attribute_manager)
         self.plugin_context = plugin_init(celery.conf)
 
         for userdoc in self.amdb._get_all_docs():
@@ -529,7 +539,6 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         with self.assertRaises(UserDoesNotExist):
             attribute_fetcher(self.plugin_context, bson.ObjectId('0' * 24))
 
-    @freeze_time(str(date.today()))  # To be able to compare expected dict and dict from attribute_fetcher
     def test_existing_user(self):
         now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
@@ -553,47 +562,48 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
 
-        self.assertEqual(
-            attribute_fetcher(self.plugin_context, user.user_id),
-            {
-                '$set': {
-                    'mailAliases': [{
-                        'email': 'john@example.com',
-                        'verified': True,
-                        'primary': True,
-                        'created_ts': now
-                    }],
-                    'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
-                    }],
-                    'phone': [{
-                        'verified': True,
-                        'number': '+46700011336',
-                        'primary': True
-                    }],
-                },
-                '$unset': {
-                    'mail': None,
-                    'norEduPersonNIN': None,
-                    'nins': [],
-                    'mobile': None,
-                    'terminated': False
-                }
+        fetched_attributes = attribute_fetcher(self.plugin_context, user.user_id)
+        expected_attributes = {
+            '$set': {
+                'mailAliases': [{
+                    'email': 'john@example.com',
+                    'verified': True,
+                    'primary': True,
+                    'created_ts': fetched_attributes['$set']['mailAliases'][0]['created_ts']
+                }],
+                'passwords': [{
+                    'id': bson.ObjectId('112345678901234567890123'),
+                    'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                }],
+                'phone': [{
+                    'verified': True,
+                    'number': '+46700011336',
+                    'primary': True
+                }],
+            },
+            '$unset': {
+                'mail': None,
+                'norEduPersonNIN': None,
+                'nins': [],
+                'mobile': None,
+                'sn': None,
+                'terminated': False
             }
-        )
+        }
+        self.assertDictEqual(fetched_attributes, expected_attributes)
 
     def test_malicious_attributes(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'john@example.com',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+                'primary': True
             }],
             'mobile': [{
                 'verified': True,
-                'mobile': '+46700011336'
+                'mobile': '+46700011336',
+                'primary': True
             }],
             'malicious': 'hacker',
             'passwords': [{
@@ -610,15 +620,16 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
     def test_fillup_attributes(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'john@example.com',
             'displayName': 'John',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+                'primary': True
             }],
             'mobile': [{
                 'verified': True,
-                'mobile': '+46700011336'
+                'mobile': '+46700011336',
+                'primary': True
             }],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
@@ -629,30 +640,32 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         user = DashboardUser(data = _data)
         self.plugin_context.dashboard_userdb.save(user)
 
-        self.assertEqual(
+        self.assertDictEqual(
             attribute_fetcher(self.plugin_context, user.user_id),
             {
                 '$set': {
-                    'mail': 'john@example.com',
                     'mailAliases': [{
                         'email': 'john@example.com',
                         'verified': True,
+                        'primary': True
                     }],
                     'displayName': 'John',
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'mobile': [{
+                    'phone': [{
                         'verified': True,
-                        'mobile': '+46700011336',
+                        'number': '+46700011336',
                         'primary': True
                     }],
                 },
                 '$unset': {
                     'norEduPersonNIN': None,
-                    'nins': None,
-                    'phone': None,
+                    'nins': [],
+                    'mail': None,
+                    'mobile': None,
+                    'sn': None,
                     'terminated': False
                 }
             }
@@ -672,14 +685,14 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         self.maxDiff = None
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'john@example.com',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
+                'primary': True
             }],
-            'mobile': [{
+            'phone': [{
                 'verified': True,
-                'mobile': '+46700011336',
+                'number': '+46700011336',
                 'primary': True
             }],
             'passwords': [{
@@ -693,44 +706,14 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         actual_update = attribute_fetcher(self.plugin_context, user.user_id)
         expected_update = {
             '$set': {
-                'mail': 'john@example.com',
                 'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                    'email': 'john@example.com',
                     'verified': True,
-                    'mobile': '+46700011336',
                     'primary': True
                 }],
-                'passwords': [{
-                              'id': bson.ObjectId('1' * 24),
-                              'salt': u'456',
-                              }]
-            },
-            '$unset': {
-                'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
-                'terminated': False
-            }
-        }
-        self.assertEqual(
-            actual_update,
-            expected_update
-        )
-
-        actual_update = attribute_fetcher(self.plugin_context, user.user_id)
-        expected_update = {
-            '$set': {
-                'mail': 'john@example.com',
-                'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                'phone': [{
                     'verified': True,
-                    'mobile': '+46700011336',
+                    'number': '+46700011336',
                     'primary': True
                 }],
                 'passwords': [{
@@ -740,13 +723,47 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
+                'terminated': False
+            }
+        }
+        self.assertDictEqual(
+            actual_update,
+            expected_update
+        )
+
+        actual_update = attribute_fetcher(self.plugin_context, user.user_id)
+        expected_update = {
+            '$set': {
+                'mailAliases': [{
+                    'email': 'john@example.com',
+                    'verified': True,
+                    'primary': True
+                }],
+                'phone': [{
+                    'verified': True,
+                    'number': '+46700011336',
+                    'primary': True
+                }],
+                'passwords': [{
+                    'id': bson.ObjectId('1' * 24),
+                    'salt': u'456',
+                }]
+            },
+            '$unset': {
+                'norEduPersonNIN': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
                 'terminated': False
             }
         }
         # Don't repeat the password
-        self.assertEqual(
+        self.assertDictEqual(
             actual_update,
             expected_update
         )
@@ -764,14 +781,14 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         actual_update = attribute_fetcher(self.plugin_context, user.user_id)
         expected_update = {
             '$set': {
-                'mail': 'john@example.com',
                 'mailAliases': [{
-                                'email': 'john@example.com',
-                                'verified': True,
-                                }],
-                'mobile': [{
+                    'email': 'john@example.com',
                     'verified': True,
-                    'mobile': '+46700011336',
+                    'primary': True
+                }],
+                'phone': [{
+                    'verified': True,
+                    'number': '+46700011336',
                     'primary': True
                 }],
                 'passwords': [{
@@ -784,13 +801,15 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
             },
             '$unset': {
                 'norEduPersonNIN': None,
-                'nins': None,
-                'phone': None,
+                'nins': [],
+                'mail': None,
+                'mobile': None,
+                'sn': None,
                 'terminated': False
             }
         }
 
-        self.assertEqual(
+        self.assertDictEqual(
             actual_update,
             expected_update
         )
@@ -798,17 +817,17 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
     def test_NIN_normalization(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'john@example.com',
             'mailAliases': [{
                 'email': 'john@example.com',
                 'verified': True,
-            }],
-            'mobile': [{
-                'verified': True,
-                'mobile': '+46700011336',
                 'primary': True
             }],
-            'norEduPersonNIN': [u'123456781235'],
+            'phone': [{
+                'verified': True,
+                'number': '+46700011336',
+                'primary': True
+            }],
+            'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -818,22 +837,23 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that the verified NIN is returned in a list
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'john@example.com',
-                    'mailAliases': [{'email': 'john@example.com', 'verified': True}],
-                    'mobile': [{'verified': True, 'mobile': '+46700011336', 'primary': True}],
-                    'norEduPersonNIN': ['123456781235'],
+                    'mailAliases': [{'email': 'john@example.com', 'verified': True, 'primary': True}],
+                    'phone': [{'verified': True, 'number': '+46700011336', 'primary': True}],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                 },
                 '$unset': {
-                    'nins': None,
-                    'phone': None,
+                    'norEduPersonNIN': None,
+                    'mobile': None,
+                    'sn': None,
+                    'mail': None,
                     'terminated': False
                 }
 
@@ -843,17 +863,17 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
     def test_NIN_unset(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'test@example.com',
             'mailAliases': [{
                 'email': 'test@example.com',
                 'verified': True,
+                'primary': True
             }],
             'mobile': [{
                 'verified': True,
                 'mobile': '+46700011336',
                 'primary': True
             }],
-            'norEduPersonNIN': [],
+            'nins': [],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -863,15 +883,14 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that a blank norEduPersonNIN is unset
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
-                    'mobile': [{
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True,  'primary': True}],
+                    'phone': [{
                         'verified': True,
-                        'mobile': '+46700011336',
+                        'number': '+46700011336',
                         'primary': True
                     }],
                     'passwords': [{
@@ -881,8 +900,10 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
                     },
                 '$unset': {
                     'norEduPersonNIN': None,
-                    'nins': None,
-                    'phone': None,
+                    'nins': [],
+                    'mail': None,
+                    'mobile': None,
+                    'sn': None,
                     'terminated': False
                 }
             }
@@ -891,13 +912,13 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
     def test_mobile_unset(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'test@example.com',
             'mailAliases': [{
                 'email': 'test@example.com',
                 'verified': True,
+                'primary': True
             }],
             'mobile': [],
-            'norEduPersonNIN': [u'123456781235'],
+            'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -907,39 +928,40 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         self.plugin_context.dashboard_userdb.save(user)
         # Test that a blank norEduPersonNIN is unset
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
+                    'mail': None,
                     'mobile': None,
-                    'nins': None,
                     'phone': None,
+                    'sn': None,
                     'terminated': False
                 }
             }
         )
 
-    @freeze_time(str(date.today()))
+    @freeze_time(date.today())
     def test_terminated_set(self):
         now = datetime.now(tz=bson.tz_util.FixedOffset(0, 'UTC'))
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'test@example.com',
             'mailAliases': [{
                 'email': 'test@example.com',
                 'verified': True,
+                'primary': True
             }],
-            'mobile': [],
-            'norEduPersonNIN': [u'123456781235'],
+            'phone': [],
+            'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -949,23 +971,24 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         user = DashboardUser(data=_data)
         self.plugin_context.dashboard_userdb.save(user)
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
-                        'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
+                        'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                     'terminated': now
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
+                    'mail': None,
                     'mobile': None,
-                    'nins': None,
-                    'phone': None
+                    'phone': None,
+                    'sn': None,
                 }
             }
         )
@@ -973,13 +996,13 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
     def test_terminated_unset(self):
         _data = {
             'eduPersonPrincipalName': 'test-test',
-            'mail': 'test@example.com',
             'mailAliases': [{
                 'email': 'test@example.com',
                 'verified': True,
+                'primary': True
             }],
             'mobile': [],
-            'norEduPersonNIN': [u'123456781235'],
+            'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
             'passwords': [{
                 'id': bson.ObjectId('112345678901234567890123'),
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
@@ -991,22 +1014,23 @@ class AttributeFetcherTestsNewUsers(MongoTestCase):
         user.terminated = False
         self.plugin_context.dashboard_userdb.save(user)
         attributes = attribute_fetcher(self.plugin_context, user.user_id)
-        self.assertEqual(
+        self.assertDictEqual(
             attributes,
             {
                 '$set': {
-                    'mail': 'test@example.com',
-                    'mailAliases': [{'email': 'test@example.com', 'verified': True}],
+                    'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
                         'id': bson.ObjectId('112345678901234567890123'),
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
-                    'norEduPersonNIN': ['123456781235'],
+                    'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                 },
                 '$unset': {
+                    'norEduPersonNIN': None,
+                    'mail': None,
                     'mobile': None,
-                    'nins': None,
                     'phone': None,
+                    'sn': None,
                     'terminated': False
                 }
             }

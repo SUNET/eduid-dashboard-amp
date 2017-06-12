@@ -66,9 +66,8 @@ class DashboardAMPContext(object):
     Private data for this AM plugin.
     """
 
-    def __init__(self, db_uri, new_user_date):
+    def __init__(self, db_uri):
         self.dashboard_userdb = DashboardUserDB(db_uri)
-        self.new_user_date = datetime.strptime(new_user_date, '%Y-%m-%d').replace(tzinfo=UTC())
 
 
 def plugin_init(am_conf):
@@ -84,7 +83,7 @@ def plugin_init(am_conf):
 
     :rtype: DashboardAMPContext
     """
-    return DashboardAMPContext(am_conf['MONGO_URI'], am_conf['NEW_USER_DATE'])
+    return DashboardAMPContext(am_conf['MONGO_URI'])
 
 
 def attribute_fetcher(context, user_id):
