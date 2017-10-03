@@ -60,7 +60,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     'created_ts': fetched_attributes['$set']['mailAliases'][0]['created_ts']
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('112345678901234567890123'),
+                    'credential_id': u'112345678901234567890123',
                     'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                 }],
                 'phone': [{
@@ -94,7 +94,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
             }],
             'malicious': 'hacker',
             'passwords': [{
-                'id': bson.ObjectId('112345678901234567890123'),
+                'credential_id': u'112345678901234567890123',
                 'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
             }],
         }
@@ -137,7 +137,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     }],
                     'displayName': 'John',
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'phone': [{
@@ -203,7 +203,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }]
             },
@@ -235,7 +235,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }]
             },
@@ -278,10 +278,10 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }, {
-                    'id': bson.ObjectId('2' * 24),
+                    'credential_id': u'222222222222222222222222',
                     'salt': u'456',
                 }]
             },
@@ -331,7 +331,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                     'phone': [{'verified': True, 'number': '+46700011336', 'primary': True}],
                     'nins': [{'verified': True, 'number': '123456781235', 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                 },
@@ -380,7 +380,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                         'primary': True
                     }],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     },
@@ -420,7 +420,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
@@ -463,7 +463,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
@@ -506,7 +506,7 @@ class AttributeFetcherOldToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
@@ -572,7 +572,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     'created_ts': fetched_attributes['$set']['mailAliases'][0]['created_ts']
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('112345678901234567890123'),
+                    'credential_id': u'112345678901234567890123',
                     'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                 }],
                 'phone': [{
@@ -651,7 +651,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     }],
                     'displayName': 'John',
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'phone': [{
@@ -717,7 +717,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }]
             },
@@ -749,7 +749,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }]
             },
@@ -792,10 +792,10 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     'primary': True
                 }],
                 'passwords': [{
-                    'id': bson.ObjectId('1' * 24),
+                    'credential_id': u'111111111111111111111111',
                     'salt': u'456',
                 }, {
-                    'id': bson.ObjectId('2' * 24),
+                    'credential_id': u'222222222222222222222222',
                     'salt': u'456',
                 }]
             },
@@ -845,7 +845,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                     'phone': [{'verified': True, 'number': '+46700011336', 'primary': True}],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                 },
@@ -894,7 +894,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                         'primary': True
                     }],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     },
@@ -934,7 +934,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
@@ -977,7 +977,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': u'$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
@@ -1020,7 +1020,7 @@ class AttributeFetcherNewToNewUsersTests(MongoTestCase):
                 '$set': {
                     'mailAliases': [{'email': 'test@example.com', 'verified': True, 'primary': True}],
                     'passwords': [{
-                        'id': bson.ObjectId('112345678901234567890123'),
+                        'credential_id': u'112345678901234567890123',
                         'salt': '$NDNv1H1$9c810d852430b62a9a7c6159d5d64c41c3831846f81b6799b54e1e8922f11545$32$32$',
                     }],
                     'nins': [{'number': '123456781235', 'verified': True, 'primary': True}],
