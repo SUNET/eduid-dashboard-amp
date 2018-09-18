@@ -7,18 +7,18 @@ here = os.path.abspath(os.path.dirname(__file__))
 README = open(os.path.join(here, 'README.rst')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.rst')).read()
 
-version = '0.3.4b0'
+version = '0.3.5b0'
 
 requires = [
-    'eduid_am >= 0.6.0, < 0.7.0',
-    'eduid_userdb >= 0.2.6b2',
+    'eduid-am >= 0.6.3b5',
+    'eduid-userdb >= 0.4.0b12',
 ]
 
 testing_extras = [
-    'nose==1.2.1',
-    'nosexcover==1.0.8',
-    'coverage==3.6',
-    'freezegun==0.3.8'
+    'nose==1.3.7',
+    'nosexcover==1.0.11',
+    'coverage==4.5.1',
+    'freezegun==0.3.10'
 ]
 
 
